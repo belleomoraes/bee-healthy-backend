@@ -7,15 +7,11 @@ import { loadEnv, connectDb, disconnectDB } from "@/config";
 
 loadEnv();
 
-import { handleApplicationErrors } from "@/middlewares";
-
 const app = express();
 app
   .use(cors())
   .use(express.json())
-  .get("/health", (_req, res) => res.send("OK!"))
-
-  .use(handleApplicationErrors);
+  .get("/health", (_req, res) => res.send("OK!"));
 
 export function init(): Promise<Express> {
   connectDb();
