@@ -11,15 +11,16 @@ datasource db {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique @db.VarChar(255)
-  password     String         @db.VarChar(255)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  Session      Session[]
-  Enrollment   Enrollment[]
-  Booking      Booking[]
-  Subscription Subscription[]
+  id                 Int                  @id @default(autoincrement())
+  email              String               @unique @db.VarChar(255)
+  password           String               @db.VarChar(255)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  Session            Session[]
+  Measurement        Measurement[]
+  Vaccination        Vaccination[]
+  Exam               Exam[]
+  PatientInformation PatientInformation[]
 }
 
 model Session {
@@ -31,154 +32,52 @@ model Session {
   updatedAt DateTime @updatedAt
 }
 
-model Event {
-  id                 Int      @id @default(autoincrement())
-  title              String   @db.VarChar(255)
-  backgroundImageUrl String   @db.VarChar(255)
-  logoImageUrl       String   @db.VarChar(255)
-  startsAt           DateTime
-  endsAt             DateTime
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-}
-
-model Enrollment {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(255)
-  cpf       String    @db.VarChar(255)
-  birthday  DateTime
-  phone     String    @db.VarChar(255)
-  userId    Int       @unique
-  User      User      @relation(fields: [userId], references: [id])
-  Address   Address[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Ticket    Ticket[]
-}
-
-model Address {
-  id            Int        @id @default(autoincrement())
-  cep           String     @db.VarChar(255)
-  street        String     @db.VarChar(255)
-  city          String     @db.VarChar(255)
-  state         String     @db.VarChar(255)
-  number        String     @db.VarChar(255)
-  neighborhood  String     @db.VarChar(255)
-  addressDetail String?    @db.VarChar(255)
-  enrollmentId  Int        @unique
-  Enrollment    Enrollment @relation(fields: [enrollmentId], references: [id])
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-}
-
-model TicketType {
-  id            Int      @id @default(autoincrement())
-  name          String   @db.VarChar(255)
-  price         Int
-  isRemote      Boolean
-  includesHotel Boolean
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  Ticket        Ticket[]
-}
-
-model Ticket {
-  id           Int          @id @default(autoincrement())
-  ticketTypeId Int
-  TicketType   TicketType   @relation(fields: [ticketTypeId], references: [id])
-  enrollmentId Int
-  Enrollment   Enrollment   @relation(fields: [enrollmentId], references: [id])
-  status       TicketStatus
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  Payment      Payment[]
-}
-
-enum TicketStatus {
-  RESERVED
-  PAID
-}
-
-model Payment {
-  id             Int      @id @default(autoincrement())
-  ticketId       Int
-  Ticket         Ticket   @relation(fields: [ticketId], references: [id])
-  value          Int
-  cardIssuer     String
-  cardLastDigits String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-}
-
-model Hotel {
+model Measurement {
   id        Int      @id @default(autoincrement())
-  name      String
-  image     String
-  Rooms     Room[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Room {
-  id        Int       @id @default(autoincrement())
-  name      String
-  capacity  Int
-  hotelId   Int
-  Hotel     Hotel     @relation(fields: [hotelId], references: [id])
-  Booking   Booking[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model Booking {
-  id        Int      @id @default(autoincrement())
-  User      User     @relation(fields: [userId], references: [id])
   userId    Int
-  Room      Room     @relation(fields: [roomId], references: [id])
-  roomId    Int
+  User      User     @relation(fields: [userId], references: [id])
+  name      String   @db.VarChar(255)
+  morning   String   @db.VarChar(255)
+  afternoon String   @db.VarChar(255)
+  night     String   @db.VarChar(255)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Weekday {
-  id        Int        @id @default(autoincrement())
-  name      String
-  Activity  Activity[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+model PatientInformation {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  User      User     @relation(fields: [userId], references: [id])
+  name      String   @db.VarChar(255)
+  cpf       String   @db.VarChar(255)
+  birthday  DateTime
+  phone     String   @db.VarChar(255)
+  sex       String   @db.VarChar(255)
+  blood     String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-model Place {
-  id        Int        @id @default(autoincrement())
-  name      String
-  Activity  Activity[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+model Vaccination {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  User         User     @relation(fields: [userId], references: [id])
+  name         String   @db.VarChar(255)
+  dose         String   @db.VarChar(255)
+  manufacturer String   @db.VarChar(255)
+  lot          String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
-model Activity {
-  id           Int            @id @default(autoincrement())
-  name         String
-  capacity     Int
-  weekdayId    Int
-  Weekday      Weekday        @relation(fields: [weekdayId], references: [id])
-  placeId      Int
-  Place        Place          @relation(fields: [placeId], references: [id])
-  startsAt     DateTime       @db.Time()
-  endsAt       DateTime       @db.Time()
-  Subscription Subscription[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  @@index([weekdayId])
-}
-
-model Subscription {
-  id         Int      @id @default(autoincrement())
-  activityId Int
-  Activity   Activity @relation(fields: [activityId], references: [id])
-  userId     Int
-  User       User     @relation(fields: [userId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+model Exam {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  User        User     @relation(fields: [userId], references: [id])
+  name        String   @db.VarChar(255)
+  examType    String   @db.VarChar(255)
+  description String   @db.VarChar(255)
+  local       String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

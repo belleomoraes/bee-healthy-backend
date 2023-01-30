@@ -26,7 +26,7 @@
     "dev": "NODE_ENV=development nodemon --watch 'src/' --exec 'ts-node -r tsconfig-paths/register ./src/server.ts' -e ts"
   },
   "keywords": [
-    "driven.t",
+    "bee-healthy",
     "back-end",
     "typescript",
     "driven",
@@ -34,7 +34,7 @@
     "express",
     "nodejs"
   ],
-  "author": "Alexandre Nunes",
+  "author": "Isabelle Moraes",
   "license": "ISC",
   "prisma": {
     "seed": "npm run dev:load-envs -- ts-node prisma/seed.ts"
