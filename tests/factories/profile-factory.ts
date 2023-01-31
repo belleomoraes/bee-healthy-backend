@@ -1,5 +1,5 @@
 import faker from "@faker-js/faker";
-import { generateCPF, getStates } from "@brazilian-utils/brazilian-utils";
+import { generateCPF } from "@brazilian-utils/brazilian-utils";
 import { User } from "@prisma/client";
 
 import { createUser } from "./users-factory";
@@ -16,7 +16,7 @@ export async function createProfileData(user?: User) {
       phone: faker.phone.phoneNumber("(##) 9####-####"),
       userId: incomingUser.id,
       sex: "female",
-      blood: "A"
+      blood: "A",
     },
   });
 }

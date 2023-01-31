@@ -39,8 +39,9 @@ describe("GET /profile", () => {
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 404 when there is no profile data for given user", async () => {
-      const token = await generateValidToken();
+    it("should respond with status 401 and empty array when there is no profile data for given user", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
 
       const response = await server.get("/profile").set("Authorization", `Bearer ${token}`);
 
@@ -52,7 +53,7 @@ describe("GET /profile", () => {
       const profile = await createProfileData(user);
       const token = await generateValidToken(user);
 
-      const response = await server.get("/enrollments").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/profile").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual({
