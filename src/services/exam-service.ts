@@ -12,10 +12,16 @@ async function getExams(userId: number): Promise<Exam[]> {
   return exam;
 }
 
-export type ExamParams = Omit<Exam, "createdAt" | "updatedAt" | "userId">;
+async function createNewExam(params: ExamBody): Promise<ExamPromise> {
+  return await examRepository.createExam(params);
+}
+
+export type ExamPromise = Omit<Exam, "createdAt" | "updatedAt" | "userId">;
+export type ExamBody = Omit<Exam, "createdAt" | "updatedAt" | "id">;
 
 const examService = {
   getExams,
+  createNewExam,
 };
 
 export default examService;
