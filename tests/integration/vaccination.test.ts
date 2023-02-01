@@ -5,7 +5,7 @@ import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
 import { createUser } from "../factories";
 import { cleanDb, generateValidToken } from "../helpers";
-import { createExamData } from "../factories/exam-factory";
+import { createVaccinationData } from "../factories";
 
 beforeAll(async () => {
   await init();
@@ -14,9 +14,9 @@ beforeAll(async () => {
 
 const server = supertest(app);
 
-describe("GET /exam", () => {
+describe("GET /vaccination", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.get("/exam");
+    const response = await server.get("/vaccination");
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -24,7 +24,7 @@ describe("GET /exam", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.get("/exam").set("Authorization", `Bearer ${token}`);
+    const response = await server.get("/vaccination").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -33,48 +33,48 @@ describe("GET /exam", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.get("/exam").set("Authorization", `Bearer ${token}`);
+    const response = await server.get("/vaccination").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 404 and empty array when there is no exam data for given user", async () => {
+    it("should respond with status 404 when there is no vaccination data for given user", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
-      const response = await server.get("/exam").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/vaccination").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 200 and exam data  when there is an exam information for given user", async () => {
+    it("should respond with status 200 and vaccination data  when there is an vaccination information for given user", async () => {
       const user = await createUser();
-      const firstExam = await createExamData(user);
-      const secondExam = await createExamData(user);
+      const firstVaccine = await createVaccinationData(user);
+      const secondVaccine = await createVaccinationData(user);
       const token = await generateValidToken(user);
 
-      const response = await server.get("/exam").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/vaccination").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual([
         {
-          id: firstExam.id,
-          name: firstExam.name,
-          examType: firstExam.examType,
-          description: firstExam.description,
-          local: firstExam.local,
-          userId: firstExam.userId,
+          id: firstVaccine.id,
+          name: firstVaccine.name,
+          lot: firstVaccine.lot,
+          manufacturer: firstVaccine.manufacturer,
+          dose: firstVaccine.dose,
+          userId: firstVaccine.userId,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },
         {
-          id: secondExam.id,
-          name: secondExam.name,
-          examType: secondExam.examType,
-          description: secondExam.description,
-          local: secondExam.local,
-          userId: secondExam.userId,
+          id: secondVaccine.id,
+          name: secondVaccine.name,
+          lot: secondVaccine.lot,
+          manufacturer: secondVaccine.manufacturer,
+          dose: secondVaccine.dose,
+          userId: secondVaccine.userId,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },
@@ -83,9 +83,9 @@ describe("GET /exam", () => {
   });
 });
 
-describe("GET /exam/:examId", () => {
+describe("GET /vaccination/:vaccinationId", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.get("/exam/1");
+    const response = await server.get("/vaccination/1");
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -93,7 +93,7 @@ describe("GET /exam/:examId", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.get("/exam/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.get("/vaccination/1").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -102,51 +102,51 @@ describe("GET /exam/:examId", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.get("/exam/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.get("/vaccination/1").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 404 when examId does not exist (= 0)", async () => {
+    it("should respond with status 404 when vaccinationId does not exist (= 0)", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
-      const response = await server.get("/exam/0").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/vaccination/0").set("Authorization", `Bearer ${token}`);
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 404 when examId does not exist (> 1)", async () => {
+    it("should respond with status 404 when vaccinationId does not exist (> 1)", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
-      const response = await server.get("/exam/1").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/vaccination/1").set("Authorization", `Bearer ${token}`);
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 404 when user is not exam owner", async () => {
+    it("should respond with status 404 when user is not vaccination owner", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const otherUser = await createUser();
-      const exam = await createExamData(otherUser);
-      const response = await server.get(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`);
+      const vaccination = await createVaccinationData(otherUser);
+      const response = await server.get(`/vaccination/${vaccination.id}`).set("Authorization", `Bearer ${token}`);
       expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
     });
 
-    it("should respond with status 200 and exam data", async () => {
+    it("should respond with status 200 and vaccination data", async () => {
       const user = await createUser();
-      const exam = await createExamData(user);
+      const vaccination = await createVaccinationData(user);
       const token = await generateValidToken(user);
-      const response = await server.get(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`);
+      const response = await server.get(`/vaccination/${vaccination.id}`).set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual({
-        id: exam.id,
-        name: exam.name,
-        examType: exam.examType,
-        description: exam.description,
-        local: exam.local,
-        userId: exam.userId,
+        id: vaccination.id,
+        name: vaccination.name,
+        lot: vaccination.lot,
+        manufacturer: vaccination.manufacturer,
+        dose: vaccination.dose,
+        userId: vaccination.userId,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
@@ -154,9 +154,9 @@ describe("GET /exam/:examId", () => {
   });
 });
 
-describe("POST /exam", () => {
+describe("POST /vaccination", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.post("/exam");
+    const response = await server.post("/vaccination");
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -164,7 +164,7 @@ describe("POST /exam", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.post("/exam").set("Authorization", `Bearer ${token}`);
+    const response = await server.post("/vaccination").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -173,7 +173,7 @@ describe("POST /exam", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.post("/exam").set("Authorization", `Bearer ${token}`);
+    const response = await server.post("/vaccination").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -182,7 +182,7 @@ describe("POST /exam", () => {
     it("should respond with status 400 when body is not present", async () => {
       const token = await generateValidToken();
 
-      const response = await server.post("/exam").set("Authorization", `Bearer ${token}`);
+      const response = await server.post("/vaccination").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.BAD_REQUEST);
     });
@@ -191,7 +191,7 @@ describe("POST /exam", () => {
       const token = await generateValidToken();
       const body = { [faker.lorem.word()]: faker.lorem.word() };
 
-      const response = await server.post("/exam").set("Authorization", `Bearer ${token}`).send(body);
+      const response = await server.post("/vaccination").set("Authorization", `Bearer ${token}`).send(body);
 
       expect(response.status).toBe(httpStatus.BAD_REQUEST);
     });
@@ -199,17 +199,17 @@ describe("POST /exam", () => {
     describe("when body is valid", () => {
       const generateValidBody = () => ({
         name: faker.name.findName(),
-        examType: faker.name.findName(),
-        description: faker.name.findName(),
-        local: faker.name.findName(),
+        lot: faker.name.findName(),
+        manufacturer: faker.name.findName(),
+        dose: faker.name.findName(),
       });
 
-      it("should respond with status 201 and create new exam", async () => {
+      it("should respond with status 201 and create new vaccination", async () => {
         const body = generateValidBody();
         const user = await createUser();
         const token = await generateValidToken(user);
 
-        const response = await server.post("/exam").set("Authorization", `Bearer ${token}`).send(body);
+        const response = await server.post("/vaccination").set("Authorization", `Bearer ${token}`).send(body);
 
         expect(response.status).toBe(httpStatus.OK);
       });
@@ -217,9 +217,9 @@ describe("POST /exam", () => {
   });
 });
 
-describe("PUT /exam/:examId", () => {
+describe("PUT /vaccination/:vaccinationId", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.put("/exam/1");
+    const response = await server.put("/vaccination/1");
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -227,7 +227,7 @@ describe("PUT /exam/:examId", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.put("/exam/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.put("/vaccination/1").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -236,7 +236,7 @@ describe("PUT /exam/:examId", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.put("/exam/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.put("/vaccination/1").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -245,66 +245,75 @@ describe("PUT /exam/:examId", () => {
     it("should respond with status 400 when body is invalid", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
-      const exam = await createExamData(user);
+      const vaccination = await createVaccinationData(user);
       const body = { [faker.lorem.word()]: faker.lorem.word() };
-      const response = await server.put(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`).send(body);
+      const response = await server
+        .put(`/vaccination/${vaccination.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
       expect(response.status).toEqual(httpStatus.BAD_REQUEST);
     });
 
     describe("when body is valid", () => {
       const generateValidBody = () => ({
         name: faker.name.findName(),
-        examType: faker.name.findName(),
-        description: faker.name.findName(),
-        local: faker.name.findName(),
+        lot: faker.name.findName(),
+        manufacturer: faker.name.findName(),
+        dose: faker.name.findName(),
       });
 
-      it("should respond with status 404 when examId does not exist (= 0)", async () => {
+      it("should respond with status 404 when vaccinationId does not exist (= 0)", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const body = generateValidBody();
 
-        const response = await server.put("/exam/0").set("Authorization", `Bearer ${token}`).send(body);
+        const response = await server.put("/vaccination/0").set("Authorization", `Bearer ${token}`).send(body);
         expect(response.status).toEqual(httpStatus.NOT_FOUND);
       });
 
-      it("should respond with status 404 when examId does not exist (> 1)", async () => {
+      it("should respond with status 404 when vaccinationId does not exist (> 1)", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const body = generateValidBody();
 
-        const response = await server.put("/exam/1").set("Authorization", `Bearer ${token}`).send(body);
+        const response = await server.put("/vaccination/1").set("Authorization", `Bearer ${token}`).send(body);
         expect(response.status).toEqual(httpStatus.NOT_FOUND);
       });
 
-      describe("when examId is valid", () => {
-        it("should respond with status 404 when user is not exam owner", async () => {
+      describe("when vaccinationId is valid", () => {
+        it("should respond with status 404 when user is not vaccination owner", async () => {
           const user = await createUser();
           const token = await generateValidToken(user);
           const body = generateValidBody();
           const otherUser = await createUser();
-          const exam = await createExamData(otherUser);
+          const vaccination = await createVaccinationData(otherUser);
 
-          const response = await server.put(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`).send(body);
+          const response = await server
+            .put(`/vaccination/${vaccination.id}`)
+            .set("Authorization", `Bearer ${token}`)
+            .send(body);
           expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
         });
 
-        describe("when user is exam owner", () => {
+        describe("when user is vaccination owner", () => {
           it("should respond with status 200", async () => {
             const user = await createUser();
             const token = await generateValidToken(user);
-            const exam = await createExamData(user);
+            const vaccination = await createVaccinationData(user);
             const body = generateValidBody();
 
-            const response = await server.put(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`).send(body);
+            const response = await server
+              .put(`/vaccination/${vaccination.id}`)
+              .set("Authorization", `Bearer ${token}`)
+              .send(body);
             expect(response.status).toEqual(httpStatus.OK);
             expect(response.body).toEqual({
-              id: exam.id,
-              name: body.name,
-              examType: body.examType,
-              description: body.description,
-              local: body.local,
-              userId: exam.userId,
+              id: vaccination.id,
+              name: vaccination.name,
+              lot: vaccination.lot,
+              manufacturer: vaccination.manufacturer,
+              dose: vaccination.dose,
+              userId: vaccination.userId,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
             });
@@ -315,9 +324,9 @@ describe("PUT /exam/:examId", () => {
   });
 });
 
-describe("DELETE /exam/:examId", () => {
+describe("DELETE /vaccination/:vaccinationId", () => {
   it("should respond with status 401 if no token is given", async () => {
-    const response = await server.delete("/exam/1");
+    const response = await server.delete("/vaccination/1");
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -325,7 +334,7 @@ describe("DELETE /exam/:examId", () => {
   it("should respond with status 401 if given token is not valid", async () => {
     const token = faker.lorem.word();
 
-    const response = await server.delete("/exam/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.delete("/vaccination/1").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
@@ -334,44 +343,44 @@ describe("DELETE /exam/:examId", () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-    const response = await server.delete("/exam/1").set("Authorization", `Bearer ${token}`);
+    const response = await server.delete("/vaccination/1").set("Authorization", `Bearer ${token}`);
 
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 404 when examId does not exist (= 0)", async () => {
+    it("should respond with status 404 when vaccinationId does not exist (= 0)", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
-      const response = await server.delete("/exam/0").set("Authorization", `Bearer ${token}`);
+      const response = await server.delete("/vaccination/0").set("Authorization", `Bearer ${token}`);
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 404 when examId does not exist (> 1)", async () => {
+    it("should respond with status 404 when vaccinationId does not exist (> 1)", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
-      const response = await server.delete("/exam/1").set("Authorization", `Bearer ${token}`);
+      const response = await server.delete("/vaccination/1").set("Authorization", `Bearer ${token}`);
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
-    describe("when examId is valid", () => {
-      it("should respond with status 404 when user is not exam owner", async () => {
+    describe("when vaccinationId is valid", () => {
+      it("should respond with status 404 when user is not vaccination owner", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const otherUser = await createUser();
-        const exam = await createExamData(otherUser);
+        const vaccination = await createVaccinationData(otherUser);
 
-        const response = await server.delete(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`);
+        const response = await server.delete(`/vaccination/${vaccination.id}`).set("Authorization", `Bearer ${token}`);
         expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
       });
 
       it("should respond with status 200", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
-        const exam = await createExamData(user);
-        const response = await server.delete(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`);
+        const vaccination = await createVaccinationData(user);
+        const response = await server.delete(`/vaccination/${vaccination.id}`).set("Authorization", `Bearer ${token}`);
         expect(response.status).toEqual(httpStatus.OK);
       });
     });
