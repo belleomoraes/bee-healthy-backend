@@ -309,10 +309,10 @@ describe("PUT /vaccination/:vaccinationId", () => {
             expect(response.status).toEqual(httpStatus.OK);
             expect(response.body).toEqual({
               id: vaccination.id,
-              name: vaccination.name,
-              lot: vaccination.lot,
-              manufacturer: vaccination.manufacturer,
-              dose: vaccination.dose,
+              name: body.name,
+              lot: body.lot,
+              manufacturer: body.manufacturer,
+              dose: body.dose,
               userId: vaccination.userId,
               createdAt: expect.any(String),
               updatedAt: expect.any(String),
