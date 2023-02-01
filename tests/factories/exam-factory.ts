@@ -9,7 +9,6 @@ export async function createExamData(user?: User) {
   return prisma.exam.create({
     data: {
       name: faker.name.findName(),
-      examType: faker.name.findName(),
       description: faker.name.findName(),
       local: faker.name.findName(),
       userId: incomingUser.id,

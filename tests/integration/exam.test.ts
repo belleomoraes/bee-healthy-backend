@@ -61,7 +61,6 @@ describe("GET /exam", () => {
         {
           id: firstExam.id,
           name: firstExam.name,
-          examType: firstExam.examType,
           description: firstExam.description,
           local: firstExam.local,
           userId: firstExam.userId,
@@ -71,7 +70,6 @@ describe("GET /exam", () => {
         {
           id: secondExam.id,
           name: secondExam.name,
-          examType: secondExam.examType,
           description: secondExam.description,
           local: secondExam.local,
           userId: secondExam.userId,
@@ -143,7 +141,6 @@ describe("GET /exam/:examId", () => {
       expect(response.body).toEqual({
         id: exam.id,
         name: exam.name,
-        examType: exam.examType,
         description: exam.description,
         local: exam.local,
         userId: exam.userId,
@@ -199,7 +196,6 @@ describe("POST /exam", () => {
     describe("when body is valid", () => {
       const generateValidBody = () => ({
         name: faker.name.findName(),
-        examType: faker.name.findName(),
         description: faker.name.findName(),
         local: faker.name.findName(),
       });
@@ -254,7 +250,6 @@ describe("PUT /exam/:examId", () => {
     describe("when body is valid", () => {
       const generateValidBody = () => ({
         name: faker.name.findName(),
-        examType: faker.name.findName(),
         description: faker.name.findName(),
         local: faker.name.findName(),
       });
@@ -301,7 +296,6 @@ describe("PUT /exam/:examId", () => {
             expect(response.body).toEqual({
               id: exam.id,
               name: body.name,
-              examType: body.examType,
               description: body.description,
               local: body.local,
               userId: exam.userId,

@@ -3,7 +3,6 @@ import { Exam } from "@prisma/client";
 
 export const createExamSchema = Joi.object<ExamBody>({
   name: Joi.string().required(),
-  examType: Joi.string().required(),
   description: Joi.string().required(),
   local: Joi.string().required(),
 });
