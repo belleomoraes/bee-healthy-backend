@@ -33,29 +33,43 @@ model Session {
 }
 
 model Measurement {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  User      User     @relation(fields: [userId], references: [id])
-  name      String   @db.VarChar(255)
-  morning   String   @db.VarChar(255)
-  afternoon String   @db.VarChar(255)
-  night     String   @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int             @id @default(autoincrement())
+  userId      Int
+  User        User            @relation(fields: [userId], references: [id])
+  observation String          @db.VarChar(255)
+  morning     String          @db.VarChar(255)
+  afternoon   String          @db.VarChar(255)
+  night       String          @db.VarChar(255)
+  type        MeasurementType
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum MeasurementType {
+  PA
+  GLUCOSE
+  OXYGEN
 }
 
 model PatientInformation {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  User      User     @relation(fields: [userId], references: [id])
-  name      String   @db.VarChar(255)
-  cpf       String   @db.VarChar(255)
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  User      User      @relation(fields: [userId], references: [id])
+  name      String    @db.VarChar(255)
+  cpf       String    @db.VarChar(255)
   birthday  DateTime
-  phone     String   @db.VarChar(255)
-  sex       String   @db.VarChar(255)
-  blood     String   @db.VarChar(255)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  phone     String    @db.VarChar(255)
+  sex       String    @db.VarChar(255)
+  blood     BloodType
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
 }
 
 model Vaccination {
@@ -75,7 +89,6 @@ model Exam {
   userId      Int
   User        User     @relation(fields: [userId], references: [id])
   name        String   @db.VarChar(255)
-  examType    String   @db.VarChar(255)
   description String   @db.VarChar(255)
   local       String   @db.VarChar(255)
   createdAt   DateTime @default(now())
