@@ -28,7 +28,15 @@ async function updateExam(examId: number, exam: ExamBodyUpdate) {
     where: {
       id: examId,
     },
-    data: { name: exam.name, examType: exam.examType, description: exam.description, local: exam.local },
+    data: exam,
+  });
+}
+
+async function deleteExam(examId: number) {
+  return prisma.exam.delete({
+    where: {
+      id: examId,
+    },
   });
 }
 
@@ -40,6 +48,7 @@ const examRepository = {
   createExam,
   updateExam,
   findExamById,
+  deleteExam,
 };
 
 export default examRepository;

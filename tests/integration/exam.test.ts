@@ -315,3 +315,66 @@ describe("PUT /exam/:examId", () => {
     });
   });
 });
+
+describe("DELETE /exam/:examId", () => {
+  it("should respond with status 401 if no token is given", async () => {
+    const response = await server.delete("/exam/1");
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if given token is not valid", async () => {
+    const token = faker.lorem.word();
+
+    const response = await server.delete("/exam/1").set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it("should respond with status 401 if there is no session for given token", async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+
+    const response = await server.delete("/exam/1").set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  describe("when token is valid", () => {
+    it("should respond with status 404 when examId does not exist (= 0)", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const response = await server.delete("/exam/0").set("Authorization", `Bearer ${token}`);
+      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+
+    it("should respond with status 404 when examId does not exist (> 1)", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const response = await server.delete("/exam/1").set("Authorization", `Bearer ${token}`);
+      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+
+    describe("when examId is valid", () => {
+      it("should respond with status 404 when user is not exam owner", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const otherUser = await createUser();
+        const exam = await createExamData(otherUser);
+
+        const response = await server.delete(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`);
+        expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
+      });
+
+      it("should respond with status 200", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const exam = await createExamData(user);
+        const response = await server.delete(`/exam/${exam.id}`).set("Authorization", `Bearer ${token}`);
+        expect(response.status).toEqual(httpStatus.OK);
+      });
+    });
+  });
+});

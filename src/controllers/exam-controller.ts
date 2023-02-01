@@ -66,3 +66,20 @@ export async function updateExam(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
+
+export async function deleteExam(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+  const { examId } = req.params;
+
+  try {
+    await examService.deleteExam(Number(examId), userId);
+
+    return res.sendStatus(httpStatus.OK);
+  } catch (error) {
+    if (error.name === "UnauthorizedError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+}

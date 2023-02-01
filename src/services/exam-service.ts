@@ -35,6 +35,12 @@ async function getOrcheckExamId(examId: number, userId: number): Promise<Exam> {
   return isExamExists;
 }
 
+async function deleteExam(examId: number, userId: number) {
+  await getOrcheckExamId(examId, userId);
+
+  return await examRepository.deleteExam(examId);
+}
+
 export type ExamPromise = Omit<Exam, "createdAt" | "updatedAt" | "userId">;
 export type ExamBody = Omit<Exam, "createdAt" | "updatedAt" | "id">;
 export type ExamBodyUpdate = Omit<Exam, "createdAt" | "updatedAt">;
@@ -44,6 +50,7 @@ const examService = {
   createNewExam,
   updateExam,
   getOrcheckExamId,
+  deleteExam,
 };
 
 export default examService;
