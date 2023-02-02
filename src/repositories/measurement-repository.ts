@@ -1,10 +1,11 @@
 import { prisma } from "@/config";
-import { Measurement } from "@prisma/client";
+import { Measurement, MeasurementType } from "@prisma/client";
 
-async function findManyMeasurement(userId: number) {
+async function findManyMeasurement(userId: number, type: MeasurementType) {
   return prisma.measurement.findMany({
     where: {
       userId: userId,
+      type: type,
     },
   });
 }
@@ -41,7 +42,6 @@ async function deleteMeasurement(measurementId: number) {
 }
 
 export type MeasurementBody = Omit<Measurement, "createdAt" | "updatedAt" | "id">;
-export type MeasurementType = Pick<Measurement, "type">;
 export type MeasurementBodyUpdate = Omit<Measurement, "createdAt" | "updatedAt" | "id" | "userId">;
 
 const measurementRepository = {

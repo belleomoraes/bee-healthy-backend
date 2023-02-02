@@ -4,9 +4,9 @@ import { notFoundError, unauthorizedError } from "@/errors";
 import { exclude } from "@/utils/prisma-utils";
 import { MeasurementType } from "@prisma/client";
 
-const measurementType = "blood-pressure" || "glucose" || "oxygen";
-async function getMeasurement(userId: number): Promise<Measurement[]> {
-  const measurement = await measurementRepository.findManyMeasurement(userId);
+async function getMeasurement(userId: number, measurementType: string): Promise<Measurement[]> {
+  const type = catchMeasurementType(measurementType);
+  const measurement = await measurementRepository.findManyMeasurement(userId, type);
 
   if (measurement.length === 0) {
     throw notFoundError;
@@ -15,23 +15,11 @@ async function getMeasurement(userId: number): Promise<Measurement[]> {
 }
 
 async function createNewMeasurement(params: MeasurementBody, type: string): Promise<MeasurementPromise> {
-  let newType;
-  if (type === "blood-pressure") {
-    newType = MeasurementType.PA;
-    return;
-  }
-  if (type === "glucose") {
-    newType = MeasurementType.GLUCOSE;
-    return;
-  }
-  if (type === "oxygen") {
-    newType = MeasurementType.OXYGEN;
-    return;
-  }
+  const measurementType = catchMeasurementType(type);
 
   const measurementData = {
     ...params,
-    type: newType,
+    type: measurementType,
   };
 
   return await measurementRepository.createMeasurement(measurementData);
@@ -60,6 +48,18 @@ async function deleteMeasurement(measurementId: number, userId: number) {
   await getOrcheckMeasurementId(measurementId, userId);
 
   return await measurementRepository.deleteMeasurement(measurementId);
+}
+
+function catchMeasurementType(type: string) {
+  if (type === "blood-pressure") {
+    return MeasurementType.PA;
+  }
+  if (type === "glucose") {
+    return MeasurementType.GLUCOSE;
+  }
+  if (type === "oxygen") {
+    return MeasurementType.OXYGEN;
+  }
 }
 
 export type MeasurementPromise = Omit<Measurement, "createdAt" | "updatedAt" | "userId">;

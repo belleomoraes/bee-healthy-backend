@@ -17,8 +17,8 @@ beforeAll(async () => {
 });
 
 const server = supertest(app);
-
-describe("GET /measurement/blood-pressure", () => {
+const measurementType = "blood-pressure" || "glucose" || "oxygen";
+describe("GET /measurement/:measurementType", () => {
   it("should respond with status 401 if no token is given", async () => {
     const response = await server.get("/measurement/blood-pressure");
 
@@ -52,10 +52,11 @@ describe("GET /measurement/blood-pressure", () => {
       expect(response.status).toBe(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 200 and measurement data  when there is an measurement information for given user", async () => {
+    it("should respond with status 200 and measurement data  when there is an measurement information for given user - blood pressure", async () => {
       const user = await createUser();
       const firstMeasurement = await createPressureMeasurementData(user);
-      const secondMeasurement = await createPressureMeasurementData(user);
+      await createGlucoseMeasurementData(user);
+      await createOxygenMeasurementData(user);
       const token = await generateValidToken(user);
 
       const response = await server.get("/measurement/blood-pressure").set("Authorization", `Bearer ${token}`);
@@ -73,14 +74,53 @@ describe("GET /measurement/blood-pressure", () => {
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },
+      ]);
+    });
+
+    it("should respond with status 200 and measurement data  when there is an measurement information for given user - glucose", async () => {
+      const user = await createUser();
+      const firstMeasurement = await createGlucoseMeasurementData(user);
+      await createPressureMeasurementData(user);
+      await createOxygenMeasurementData(user);
+      const token = await generateValidToken(user);
+
+      const response = await server.get("/measurement/glucose").set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(httpStatus.OK);
+      expect(response.body).toEqual([
         {
-          id: secondMeasurement.id,
-          observation: secondMeasurement.observation,
-          morning: secondMeasurement.morning,
-          afternoon: secondMeasurement.afternoon,
-          type: secondMeasurement.type,
-          night: secondMeasurement.night,
-          userId: secondMeasurement.userId,
+          id: firstMeasurement.id,
+          observation: firstMeasurement.observation,
+          morning: firstMeasurement.morning,
+          afternoon: firstMeasurement.afternoon,
+          night: firstMeasurement.night,
+          type: firstMeasurement.type,
+          userId: firstMeasurement.userId,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        },
+      ]);
+    });
+
+    it("should respond with status 200 and measurement data  when there is an measurement information for given user - oxygen", async () => {
+      const user = await createUser();
+      const firstMeasurement = await createOxygenMeasurementData(user);
+      await createPressureMeasurementData(user);
+      await createGlucoseMeasurementData(user);
+      const token = await generateValidToken(user);
+
+      const response = await server.get("/measurement/oxygen").set("Authorization", `Bearer ${token}`);
+
+      expect(response.status).toBe(httpStatus.OK);
+      expect(response.body).toEqual([
+        {
+          id: firstMeasurement.id,
+          observation: firstMeasurement.observation,
+          morning: firstMeasurement.morning,
+          afternoon: firstMeasurement.afternoon,
+          night: firstMeasurement.night,
+          type: firstMeasurement.type,
+          userId: firstMeasurement.userId,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
         },

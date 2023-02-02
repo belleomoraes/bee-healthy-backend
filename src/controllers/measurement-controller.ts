@@ -5,9 +5,14 @@ import measurementService from "@/services/measurement-service";
 
 export async function getMeasurement(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
+  const { measurementType } = req.params;
 
   try {
-    const measurement = await measurementService.getMeasurement(userId);
+    const measurement = await measurementService.getMeasurement(userId, measurementType);
+    console.log(
+      "🚀 passa aqui por favor meu jesus ~ file: measurement-controller.ts:12 ~ getMeasurement ~ measurement",
+      measurement,
+    );
     return res.status(httpStatus.OK).send(measurement);
   } catch (error) {
     if (error.name === "UnauthorizedError") {
