@@ -9,6 +9,35 @@ async function findManyVaccination(userId: number) {
   });
 }
 
+async function findManyFilteredVaccination(search: string, userId: number) {
+  return prisma.vaccination.findMany({
+    where: {
+      userId: userId,
+      AND: [
+        {
+          OR: [
+            {
+              name: {
+                startsWith: search,
+              },
+            },
+            {
+              lot: {
+                startsWith: search,
+              },
+            },
+            {
+              manufacturer: {
+                startsWith: search,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  });
+}
+
 async function findVaccinationById(vaccinationId: number) {
   return prisma.vaccination.findFirst({
     where: {
@@ -45,6 +74,7 @@ export type VaccinationBodyUpdate = Omit<Vaccination, "createdAt" | "updatedAt" 
 
 const vaccinationRepository = {
   findManyVaccination,
+  findManyFilteredVaccination,
   createVaccination,
   updateVaccination,
   findVaccinationById,

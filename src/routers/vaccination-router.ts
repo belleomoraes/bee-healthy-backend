@@ -6,6 +6,7 @@ import {
   createNewVaccination,
   updateVaccination,
   getVaccinationById,
+  getFilteredVaccination,
   deleteVaccination,
 } from "@/controllers";
 import { createVaccinationSchema } from "@/schemas";
@@ -14,6 +15,7 @@ const vaccinationRouter = Router();
 
 vaccinationRouter
   .all("/*", authenticateToken)
+  .get("/filter", getFilteredVaccination) 
   .get("/", getVaccination)
   .get("/:vaccinationId", getVaccinationById)
   .post("/", validateBody(createVaccinationSchema), createNewVaccination)

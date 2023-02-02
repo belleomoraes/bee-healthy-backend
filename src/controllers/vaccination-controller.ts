@@ -34,6 +34,22 @@ export async function getVaccinationById(req: AuthenticatedRequest, res: Respons
   }
 }
 
+export async function getFilteredVaccination(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+  const { search } = req.query;
+
+  try {
+    const vaccination = await vaccinationService.getFilteredVaccination(String(search), userId);
+    return res.status(httpStatus.OK).send(vaccination);
+  } catch (error) {
+    if (error.name === "UnauthorizedError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+}
+
 export async function createNewVaccination(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
 

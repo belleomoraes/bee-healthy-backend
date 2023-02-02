@@ -12,6 +12,15 @@ async function getVaccination(userId: number): Promise<Vaccination[]> {
   return vaccination;
 }
 
+async function getFilteredVaccination(search: string, userId: number): Promise<Vaccination[]> {
+  const vaccination = await vaccinationRepository.findManyFilteredVaccination(search, userId);
+
+  if (vaccination.length === 0) {
+    throw notFoundError;
+  }
+  return vaccination;
+}
+
 async function createNewVaccination(params: VaccinationBody): Promise<VaccinationPromise> {
   return await vaccinationRepository.createVaccination(params);
 }
@@ -47,6 +56,7 @@ export type VaccinationBodyUpdate = Omit<Vaccination, "createdAt" | "updatedAt">
 
 const vaccinationService = {
   getVaccination,
+  getFilteredVaccination,
   createNewVaccination,
   updateVaccination,
   getOrcheckVaccinationId,
