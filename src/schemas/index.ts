@@ -3,3 +3,4 @@ export * from "./users-schemas";
 export * from "./profile-schemas";
 export * from "./exam-schemas";
 export * from "./vaccination-schema";
+export * from "./measurement-schema";
