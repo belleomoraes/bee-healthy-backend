@@ -46,7 +46,6 @@ export async function createNewMeasurement(req: AuthenticatedRequest, res: Respo
 export async function updateMeasurement(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
   const { measurementId } = req.query;
-  const { measurementType } = req.params;
 
   try {
     const measurement = await measurementService.updateMeasurement({ ...req.body, userId, id: Number(measurementId) });

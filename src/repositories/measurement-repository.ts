@@ -42,7 +42,7 @@ async function deleteMeasurement(measurementId: number) {
 }
 
 export type MeasurementBody = Omit<Measurement, "createdAt" | "updatedAt" | "id">;
-export type MeasurementBodyUpdate = Omit<Measurement, "createdAt" | "updatedAt" | "id" | "userId">;
+export type MeasurementBodyUpdate = Omit<Measurement, "createdAt" | "updatedAt" | "id" | "userId" | "type">;
 
 const measurementRepository = {
   findManyMeasurement,

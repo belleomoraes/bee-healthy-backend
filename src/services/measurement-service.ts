@@ -64,7 +64,7 @@ function catchMeasurementType(type: string) {
 
 export type MeasurementPromise = Omit<Measurement, "createdAt" | "updatedAt" | "userId">;
 export type MeasurementBody = Omit<Measurement, "createdAt" | "updatedAt" | "id" | "type">;
-export type MeasurementBodyUpdate = Omit<Measurement, "createdAt" | "updatedAt">;
+export type MeasurementBodyUpdate = Omit<Measurement, "createdAt" | "updatedAt" | "type">;
 
 const measurementService = {
   getMeasurementByType,

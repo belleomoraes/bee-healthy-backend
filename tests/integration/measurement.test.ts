@@ -303,112 +303,171 @@ describe("POST /measurement/:measurementType", () => {
   });
 });
 
-// describe("PUT /measurement/:measurementId", () => {
-//   it("should respond with status 401 if no token is given", async () => {
-//     const response = await server.put("/measurement/1");
+describe("PUT /measurement/:measurementType", () => {
+  it("should respond with status 401 if no token is given", async () => {
+    const response = await server.put("/measurement/blood-pressure?measurementId=1");
 
-//     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
-//   });
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+ 
+  it("should respond with status 401 if given token is not valid", async () => {
+    const token = faker.lorem.word();
 
-//   it("should respond with status 401 if given token is not valid", async () => {
-//     const token = faker.lorem.word();
+    const response = await server.put("/measurement/blood-pressure?measurementId=1").set("Authorization", `Bearer ${token}`);
 
-//     const response = await server.put("/measurement/1").set("Authorization", `Bearer ${token}`);
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
 
-//     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
-//   });
+  it("should respond with status 401 if there is no session for given token", async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
-//   it("should respond with status 401 if there is no session for given token", async () => {
-//     const userWithoutSession = await createUser();
-//     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+    const response = await server.put("/measurement/blood-pressure?measurementId=1").set("Authorization", `Bearer ${token}`);
 
-//     const response = await server.put("/measurement/1").set("Authorization", `Bearer ${token}`);
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
 
-//     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
-//   });
+  describe("when token is valid", () => {
+    it("should respond with status 400 when body is invalid", async () => {
+      const user = await createUser();
+      const token = await generateValidToken(user);
+      const measurement = await createPressureMeasurementData(user);
+      const body = { [faker.lorem.word()]: faker.lorem.word() };
+      const response = await server
+        .put( `/measurement/blood-pressure?measurementId=${measurement.id}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+      expect(response.status).toEqual(httpStatus.BAD_REQUEST);
+    });
 
-//   describe("when token is valid", () => {
-//     it("should respond with status 400 when body is invalid", async () => {
-//       const user = await createUser();
-//       const token = await generateValidToken(user);
-//       const measurement = await createPressureMeasurementData(user);
-//       const body = { [faker.lorem.word()]: faker.lorem.word() };
-//       const response = await server
-//         .put(`/measurement/${measurement.id}`)
-//         .set("Authorization", `Bearer ${token}`)
-//         .send(body);
-//       expect(response.status).toEqual(httpStatus.BAD_REQUEST);
-//     });
+    describe("when body is valid", () => {
+      const generateValidBody = () => ({
+        observation: faker.name.findName(),
+        morning: faker.name.findName(),
+        afternoon: faker.name.findName(),
+        night: faker.name.findName(),
+      });
 
-//     describe("when body is valid", () => {
-//       const generateValidBody = () => ({
-//         observation: faker.name.findName(),
-//         morning: faker.name.findName(),
-//         afternoon: faker.name.findName(),
-//         night: faker.name.findName(),
-//       });
+      it("should respond with status 404 when measurementId does not exist (= 0)", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const body = generateValidBody();
 
-//       it("should respond with status 404 when measurementId does not exist (= 0)", async () => {
-//         const user = await createUser();
-//         const token = await generateValidToken(user);
-//         const body = generateValidBody();
+        const response = await server
+          .put("/measurement/blood-pressure?measurementId=0")
+          .set("Authorization", `Bearer ${token}`)
+          .send(body);
+        expect(response.status).toEqual(httpStatus.NOT_FOUND);
+      });
 
-//         const response = await server.put("/measurement/0").set("Authorization", `Bearer ${token}`).send(body);
-//         expect(response.status).toEqual(httpStatus.NOT_FOUND);
-//       });
+      it("should respond with status 404 when measurementId does not exist (> 1)", async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const body = generateValidBody();
 
-//       it("should respond with status 404 when measurementId does not exist (> 1)", async () => {
-//         const user = await createUser();
-//         const token = await generateValidToken(user);
-//         const body = generateValidBody();
+        const response = await server
+          .put("/measurement/blood-pressure?measurementId=1")
+          .set("Authorization", `Bearer ${token}`)
+          .send(body);
+        expect(response.status).toEqual(httpStatus.NOT_FOUND);
+      });
 
-//         const response = await server.put("/measurement/1").set("Authorization", `Bearer ${token}`).send(body);
-//         expect(response.status).toEqual(httpStatus.NOT_FOUND);
-//       });
+      describe("when measurementId is valid", () => {
+        it("should respond with status 404 when user is not measurement owner", async () => {
+          const user = await createUser();
+          const token = await generateValidToken(user);
+          const body = generateValidBody();
+          const otherUser = await createUser();
+          const measurement = await createPressureMeasurementData(otherUser);
 
-//       describe("when measurementId is valid", () => {
-//         it("should respond with status 404 when user is not measurement owner", async () => {
-//           const user = await createUser();
-//           const token = await generateValidToken(user);
-//           const body = generateValidBody();
-//           const otherUser = await createUser();
-//           const measurement = await createPressureMeasurementData(otherUser);
+          const response = await server
+            .put(`/measurement/blood-pressure?measurementId=${measurement.id}`)
+            .set("Authorization", `Bearer ${token}`)
+            .send(body);
+          expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
+        });
 
-//           const response = await server
-//             .put(`/measurement/${measurement.id}`)
-//             .set("Authorization", `Bearer ${token}`)
-//             .send(body);
-//           expect(response.status).toEqual(httpStatus.UNAUTHORIZED);
-//         });
+        describe("when user is measurement owner - blood pressure", () => {
+          it("should respond with status 200", async () => {
+            const user = await createUser();
+            const token = await generateValidToken(user);
+            const measurement = await createPressureMeasurementData(user);
+            const body = generateValidBody();
 
-//         describe("when user is measurement owner", () => {
-//           it("should respond with status 200", async () => {
-//             const user = await createUser();
-//             const token = await generateValidToken(user);
-//             const measurement = await createPressureMeasurementData(user);
-//             const body = generateValidBody();
+            const response = await server
+              .put(`/measurement/blood-pressure?measurementId=${measurement.id}`)
+              .set("Authorization", `Bearer ${token}`)
+              .send(body);
+            expect(response.status).toEqual(httpStatus.OK);
+            expect(response.body).toEqual({
+              id: measurement.id,
+              observation: body.observation,
+              morning: body.morning,
+              afternoon: body.afternoon,
+              night: body.night,
+              type: measurement.type,
+              userId: measurement.userId,
+              createdAt: expect.any(String),
+              updatedAt: expect.any(String),
+            });
+          });
+        });
 
-//             const response = await server
-//               .put(`/measurement/${measurement.id}`)
-//               .set("Authorization", `Bearer ${token}`)
-//               .send(body);
-//             expect(response.status).toEqual(httpStatus.OK);
-//             expect(response.body).toEqual({
-//               id: measurement.id,
-//               observation: body.observation,
-//               morning: body.morning,
-//               afternoon: body.afternoon,
-//               night: body.afternoon,
-//               userId: measurement.userId,
-//               createdAt: expect.any(String),
-//               updatedAt: expect.any(String),
-//             });
-//           });
-//         });
-//       });
-//     });
-//   });
-// });
+        describe("when user is measurement owner - oxygen", () => {
+          it("should respond with status 200", async () => {
+            const user = await createUser();
+            const token = await generateValidToken(user);
+            const measurement = await createOxygenMeasurementData(user);
+            const body = generateValidBody();
+
+            const response = await server
+              .put(`/measurement/oxygen?measurementId=${measurement.id}`)
+              .set("Authorization", `Bearer ${token}`)
+              .send(body);
+            expect(response.status).toEqual(httpStatus.OK);
+            expect(response.body).toEqual({
+              id: measurement.id,
+              observation: body.observation,
+              morning: body.morning,
+              afternoon: body.afternoon,
+              night: body.night,
+              type: measurement.type,
+              userId: measurement.userId,
+              createdAt: expect.any(String),
+              updatedAt: expect.any(String),
+            });
+          });
+        });
+
+        describe("when user is measurement owner - glucose", () => {
+          it("should respond with status 200", async () => {
+            const user = await createUser();
+            const token = await generateValidToken(user);
+            const measurement = await createGlucoseMeasurementData(user);
+            const body = generateValidBody();
+
+            const response = await server
+              .put(`/measurement/glucose?measurementId=${measurement.id}`)
+              .set("Authorization", `Bearer ${token}`)
+              .send(body);
+            expect(response.status).toEqual(httpStatus.OK);
+            expect(response.body).toEqual({
+              id: measurement.id,
+              observation: body.observation,
+              morning: body.morning,
+              afternoon: body.afternoon,
+              night: body.night,
+              type: measurement.type,
+              userId: measurement.userId,
+              createdAt: expect.any(String),
+              updatedAt: expect.any(String),
+            });
+          });
+        });
+      });
+    });
+  });
+});
 
 // describe("DELETE /measurement/:measurementId", () => {
 //   it("should respond with status 401 if no token is given", async () => {
