@@ -4,7 +4,7 @@ import { notFoundError, unauthorizedError } from "@/errors";
 import { exclude } from "@/utils/prisma-utils";
 import { MeasurementType } from "@prisma/client";
 
-async function getMeasurement(userId: number, measurementType: string): Promise<Measurement[]> {
+async function getMeasurementByType(userId: number, measurementType: string): Promise<Measurement[]> {
   const type = catchMeasurementType(measurementType);
   const measurement = await measurementRepository.findManyMeasurement(userId, type);
 
@@ -67,7 +67,7 @@ export type MeasurementBody = Omit<Measurement, "createdAt" | "updatedAt" | "id"
 export type MeasurementBodyUpdate = Omit<Measurement, "createdAt" | "updatedAt">;
 
 const measurementService = {
-  getMeasurement,
+  getMeasurementByType,
   createNewMeasurement,
   updateMeasurement,
   getOrcheckMeasurementId,
