@@ -18,6 +18,21 @@ export async function getExams(req: AuthenticatedRequest, res: Response) {
   }
 }
 
+export async function getFilteredExam(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+  const { search } = req.query;
+
+  try {
+    const exam = await examService.getFilteredExam(String(search), userId);
+    return res.status(httpStatus.OK).send(exam);
+  } catch (error) {
+    if (error.name === "UnauthorizedError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+}
 export async function getExamById(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
   const { examId } = req.params;

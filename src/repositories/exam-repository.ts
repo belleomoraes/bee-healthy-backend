@@ -9,6 +9,35 @@ async function findManyExams(userId: number) {
   });
 }
 
+async function findManyFilteredExams(search: string, userId: number) {
+  return prisma.exam.findMany({
+    where: {
+      userId: userId,
+      AND: [
+        {
+          OR: [
+            {
+              name: {
+                startsWith: search,
+              },
+            },
+            {
+              description: {
+                startsWith: search,
+              },
+            },
+            {
+              local: {
+                startsWith: search,
+              },
+            },
+          ],
+        },
+      ],
+    },
+  });
+}
+
 async function findExamById(examId: number) {
   return prisma.exam.findFirst({
     where: {
@@ -49,6 +78,7 @@ const examRepository = {
   updateExam,
   findExamById,
   deleteExam,
+  findManyFilteredExams,
 };
 
 export default examRepository;

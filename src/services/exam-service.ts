@@ -11,7 +11,14 @@ async function getExams(userId: number): Promise<Exam[]> {
   }
   return exam;
 }
+async function getFilteredExam(search: string, userId: number): Promise<Exam[]> {
+  const exam = await examRepository.findManyFilteredExams(search, userId);
 
+  if (exam.length === 0) {
+    throw notFoundError;
+  }
+  return exam;
+}
 async function createNewExam(params: ExamBody): Promise<ExamPromise> {
   return await examRepository.createExam(params);
 }
@@ -51,6 +58,7 @@ const examService = {
   updateExam,
   getOrcheckExamId,
   deleteExam,
+  getFilteredExam,
 };
 
 export default examService;

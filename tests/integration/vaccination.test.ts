@@ -112,7 +112,7 @@ describe("GET /vaccination/filter", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
 
-      const response = await server.get("/vaccination").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/vaccination/filter").set("Authorization", `Bearer ${token}`);
 
       expect(response.status).toBe(httpStatus.NOT_FOUND);
     });
@@ -120,7 +120,7 @@ describe("GET /vaccination/filter", () => {
     it("should respond with status 200 and vaccination data  when there is an vaccination information for given filter - all letters", async () => {
       const user = await createUser();
       const firstVaccine = await createVaccinationData(user);
-      const secondVaccine = await createVaccinationData(user);
+      await createVaccinationData(user);
       const token = await generateValidToken(user);
 
       const response = await server
